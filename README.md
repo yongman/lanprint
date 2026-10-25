@@ -8,6 +8,8 @@ Linux 上的 Rust 目录自动打印和 Web 上传打印工具。通过本机 We
 
 ## 安装与首次运行
 
+也可以从 [GitHub Releases](https://github.com/yongman/lanprint/releases) 下载 Linux x86_64 预编译包和 SHA-256 校验文件。解压后可将 `lanprint` 安装到 `~/.local/bin`；运行时仍需要本节列出的系统依赖。
+
 需要 Linux、Rust 工具链（仓库固定为 1.93.0）、C 编译器，以及 CUPS 客户端。PDF 页数统计需要 Poppler 的 `/usr/bin/pdfinfo`（`poppler-utils`）。尚无 Rust 时请先按 <https://rustup.rs> 安装 rustup；进入项目执行 Cargo 命令会按 `rust-toolchain.toml` 选择工具链。Word 转换另需 LibreOffice Writer 和所用字体；图片转换需安装 LibreOffice Draw 与对应图像导入过滤器。SQLite 已内置，不需要安装 SQLite 开发库。
 
 Debian / Ubuntu 示例：

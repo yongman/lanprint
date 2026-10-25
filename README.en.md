@@ -23,6 +23,8 @@ sudo apt install build-essential pkg-config cups-client poppler-utils libreoffic
 
 ## Build and first run
 
+You can also download a prebuilt Linux x86_64 package and its SHA-256 checksum from [GitHub Releases](https://github.com/yongman/lanprint/releases). After extraction, install `lanprint` in `~/.local/bin`. Runtime system dependencies listed above are still required.
+
 ```bash
 git clone https://github.com/yongman/lanprint.git
 cd lanprint
