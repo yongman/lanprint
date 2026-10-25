@@ -61,9 +61,14 @@ pub async fn process(state: &AppState, job: &Job) -> Result<Submission> {
             "LibreOffice conversion",
         )
         .await?;
+        let component = match kind {
+            FileKind::Word => "LibreOffice Writer (libreoffice-writer)",
+            FileKind::Image => "LibreOffice Draw (libreoffice-draw)",
+            FileKind::Pdf => unreachable!(),
+        };
         ensure!(
             converted.is_file() && converted.metadata()?.len() > 0,
-            "LibreOffice returned without creating a PDF; install LibreOffice and verify the document or image import filters. Output: {conversion_output}"
+            "LibreOffice returned without creating a PDF; install {component} and verify the matching import filters. Output: {conversion_output}"
         );
         converted.as_path()
     } else {
