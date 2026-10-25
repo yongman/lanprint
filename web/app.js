@@ -113,7 +113,7 @@ $('upload').onsubmit = async (event) => {
   const file = $('upload-file').files[0];
   if (!file) return;
   try {
-    if (!/\.(pdf|doc|docx)$/i.test(file.name)) throw new Error(t('error.fileType'));
+    if (!/\.(pdf|doc|docx|png|jpe?g)$/i.test(file.name)) throw new Error(t('error.fileType'));
     if (!file.size) throw new Error(t('error.emptyFile'));
     if (file.size > maxUploadBytes) throw new Error(t('error.fileSize'));
     uploading = true; uploadedJob = null; $('upload-submit').disabled = true;

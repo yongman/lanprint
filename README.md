@@ -2,19 +2,19 @@
 
 [简体中文](README.md) | [English](README.en.md)
 
-Linux 上的 Rust 目录自动打印和 Web 上传打印工具。通过本机 Web 页面配置监控目录和 CUPS 队列，稳定写入的 PDF 直接提交，DOC/DOCX 先由 LibreOffice headless 转成 PDF。SQLite 保存配置、文件指纹和任务历史，失败可手动重试。
+Linux 上的 Rust 目录自动打印和 Web 上传打印工具。通过本机 Web 页面配置监控目录和 CUPS 队列，稳定写入的 PDF 直接提交，DOC/DOCX 与 PNG/JPG/JPEG 图片先由 LibreOffice headless 转成 PDF。SQLite 保存配置、文件指纹和任务历史，失败可手动重试。
 
 界面支持简体中文和英文。首次访问时按浏览器语言选择；可通过页面顶部的语言菜单切换，选择保存在当前浏览器。
 
 ## 安装与首次运行
 
-需要 Linux、Rust 工具链（仓库固定为 1.93.0）、C 编译器，以及 CUPS 客户端。PDF 页数统计需要 Poppler 的 `/usr/bin/pdfinfo`（`poppler-utils`）。尚无 Rust 时请先按 <https://rustup.rs> 安装 rustup；进入项目执行 Cargo 命令会按 `rust-toolchain.toml` 选择工具链。Word 转换另需 LibreOffice Writer 和所用字体。SQLite 已内置，不需要安装 SQLite 开发库。
+需要 Linux、Rust 工具链（仓库固定为 1.93.0）、C 编译器，以及 CUPS 客户端。PDF 页数统计需要 Poppler 的 `/usr/bin/pdfinfo`（`poppler-utils`）。尚无 Rust 时请先按 <https://rustup.rs> 安装 rustup；进入项目执行 Cargo 命令会按 `rust-toolchain.toml` 选择工具链。Word 转换另需 LibreOffice Writer 和所用字体；图片转换需安装 LibreOffice Draw 与对应图像导入过滤器。SQLite 已内置，不需要安装 SQLite 开发库。
 
 Debian / Ubuntu 示例：
 
 ```bash
 sudo apt update
-sudo apt install build-essential pkg-config cups-client poppler-utils libreoffice-writer fonts-noto-cjk
+sudo apt install build-essential pkg-config cups-client poppler-utils libreoffice-writer libreoffice-draw fonts-noto-cjk
 cd /path/to/lanprint
 cargo build --release --locked
 mkdir -p "$HOME/print-inbox" "$HOME/.local/share/lanprint"
@@ -29,7 +29,7 @@ mkdir -p "$HOME/print-inbox" "$HOME/.local/share/lanprint"
 4. 保存配置后，由管理员停止并重新启动该服务进程，重新进入设置页确认无需重启，再点击“启动监控”。首次保存也必须重启。**首次启动会处理目录中已有的支持文件**。默认稳定等待 5 秒、每个命令超时 120 秒。
 5. 将文件放入目录，在设置页查看监控状态，在首页查看打印历史。修改配置前须暂停并等待当前扫描/快照或打印任务结束（状态 `busy=false`）。
 
-服务每次启动均默认暂停目录监控。配置和排队历史会保留；目录任务点击启动后继续，上传任务自动继续。`Ctrl-C` 或 `SIGTERM` 停止接收请求并等待当前打印操作结束。DOC 转换和提交各有独立超时，最大各 600 秒。
+服务每次启动均默认暂停目录监控。配置和排队历史会保留；目录任务点击启动后继续，上传任务自动继续。`Ctrl-C` 或 `SIGTERM` 停止接收请求并等待当前打印操作结束。Word/图片转换和提交各有独立超时，最大各 600 秒。
 
 ## 打印机与 IPP
 
@@ -53,11 +53,11 @@ sudo lpadmin -p Office -E -v ipp://printer.local/ipp/print -m everywhere
 
 ## 文件稳定性、去重与状态
 
-- 轮询当前目录一层，不递归，不跟随文件符号链接；只处理 UTF-8 路径及大小写不敏感的 `.pdf`、`.docx`、`.doc`。空文件占位符跳过，其他文件不修改。
+- 轮询当前目录一层，不递归，不跟随文件符号链接；只处理 UTF-8 路径及大小写不敏感的 `.pdf`、`.docx`、`.doc`、`.png`、`.jpg`、`.jpeg`。空文件占位符跳过，其他文件不修改。
 - 在连续观察到 inode、长度、mtime、ctime 均保持不变达到稳定等待时间后，复制并计算 SHA-256；复制前后再检查元数据。若发生变化，丢弃副本并重新等待。
 - **稳定时间是静默窗口，不是生产程序已关闭文件的证明**。写入程序若暂停超过该窗口，仍可能被视为完成。可靠接入请先写 `.tmp` 文件，关闭后在同一文件系统原子重命名为最终扩展名；网络文件系统也应采用此方式。
 - 快照先落盘，再以“完整源路径＋内容 SHA-256”的唯一约束入队。重复通知、只修改时间、服务重启、原路径删除后放回相同内容均不会自动重印。同路径内容变化视为新版本；不同路径或重命名后的文件视为新文件。恢复旧数据备份可能遗失近期指纹。
-- 串行处理：`queued → converting（Word）→ submitting → submitted`，任何执行错误进入 `failed`。页面的“已提交 CUPS”只代表 `lp` 返回成功，**不代表实际出纸**；CUPS 后续的缺纸、离线等问题需在 CUPS/打印机检查。
+- 串行处理：`queued → converting（Word/图片）→ submitting → submitted`，任何执行错误进入 `failed`。页面的“已提交 CUPS”只代表 `lp` 返回成功，**不代表实际出纸**；CUPS 后续的缺纸、离线等问题需在 CUPS/打印机检查。
 - 暂停停止后续目录扫描及目录队列执行；已在入队前暂停的快照会完成当前复制后丢弃，不再入队。已入队的目录快照留队；上传任务继续自动执行，不取消已开始的转换/提交。`busy` 包括配置读取、目录扫描/快照和转换/提交，暂停不会立即清除 `busy`。等待其变为 `false` 后才可保存配置或重新启动。转换期间扫描也等待；这是适合小型打印收件箱的串行 MVP。
 - 活动配置在进程启动时加载并固定。保存只持久化下次启动使用的配置，设置页显示“需要重启”；重启前启动监控、新上传及传输中上传均继续使用活动配置。首次保存后尚无活动配置，启动和上传返回 409，必须先重启。保存相同活动配置无需重启；保存回活动配置可撤销待生效更改。
 - 保存不会取消、改写排队任务。目录排队任务等待启动，上传自动继续；所有已入队任务和人工重试始终使用各自的原快照及原配置，跨重启同样保留。因此切换到 B 后，原先排队的 A 任务仍可能提交到 A；只有新任务使用 B。
@@ -70,7 +70,7 @@ sudo lpadmin -p Office -E -v ipp://printer.local/ipp/print -m everywhere
 页面适配 360px 手机视口，历史在窄屏按任务纵向展示，无需横向滚动。可通过本机连接、经过认证的 SSH 隧道，或按下方访问控制说明启用的可信局域网访问。
 
 1. 首次使用先在“设置”页保存目录与打印机配置，由管理员重启服务使其生效，再返回首页；无需启动目录监控。
-2. 在“上传打印”选择一个 PDF、DOC 或 DOCX，点击“上传并打印”。单文件固定上限 50 MiB（52,428,800 字节），不接受空文件；格式按大小写不敏感的最终扩展名检查。
+2. 在“上传打印”选择一个 PDF、DOC、DOCX、PNG、JPG 或 JPEG，点击“上传并打印”。单文件固定上限 50 MiB（52,428,800 字节），不接受空文件；格式按大小写不敏感的最终扩展名检查。
 3. 成功接受后显示任务编号和排队状态；串行工作线程约每秒选取一次任务，忙碌时等待前面的任务完成。上传任务与目录任务共用 SQLite、快照及转换/打印流程，但监控暂停、服务重启后也会自动处理。
 4. 在上传结果及历史中查看文件名、创建时间、状态、尝试次数和错误。“已提交 CUPS”表示被 CUPS 接受，实际出纸仍需检查打印机。失败后检查 CUPS 队列，再按现有“重试”流程处理；上传重试无需启动监控。
 
@@ -94,7 +94,7 @@ curl -H 'X-Lanprint-Request: 1' -F 'file=@example.pdf' http://127.0.0.1:8787/api
 
 统计对象为**已提交至 CUPS**（`lp` 成功返回）的任务，包含目录和上传来源。失败、取消、排队及执行中的任务均不计入；失败后重试成功只按同一任务计一次。时间按 CUPS 接受后记录的 `submitted_at`，而非上传或创建时间；以服务进程本地时区划分今天及之前 6 个自然日，按日期升序返回全部 7 天，空日文件数/页数为 0。浏览器位于其他时区时仍显示服务日期，不自行重新分桶。跨午夜的任务归到接受日。
 
-每次提交前对实际传给 `lp` 的 PDF 调用 `/usr/bin/pdfinfo`；DOC/DOCX 使用本次 LibreOffice 转换产物，而非原始 Word、文件名或 CUPS 作业默认页数。页数指文档 PDF 页数，不乘份数，不等于双面/拼版后的纸张数，也不确认实际出纸。计数命令沿用受限输出和进程组超时机制，最多 30 秒或配置的较短超时。
+每次提交前对实际传给 `lp` 的 PDF 调用 `/usr/bin/pdfinfo`；DOC/DOCX 和图片使用本次 LibreOffice 转换产物，而非原始文件名或 CUPS 作业默认页数。页数指生成 PDF 的文档页数，不乘份数，不等于双面/拼版后的纸张数，也不确认实际出纸。计数命令沿用受限输出和进程组超时机制，最多 30 秒或配置的较短超时。
 
 SQLite 自动增加 nullable `jobs.page_count`（正整数）和 `jobs.submitted_at` 字段；新任务仅在 `lp` 成功后，将状态、响应、页数和接受时间一次更新落盘。旧的 submitted 记录原本不会再修改，故用其 `updated_at` 作为原接受时间补入 `submitted_at`；旧页数保留 `NULL`。不自动重跑历史 Word 转换或推测页数：旧转换产物已清理，当前字体/转换版本也可能不同，无法保证可靠回填。升级前按既有停服备份流程保存数据库与 spool。
 
@@ -178,7 +178,7 @@ node --check web/settings.js
 python3 tests/mobile.py target/release/lanprint /tmp/lanprint-mobile-evidence
 ```
 
-测试需 Python 3（标准库）及 `/usr/bin/pdfinfo`（真实 PDF 页数验证），不要求 CUPS 或 LibreOffice。单元和端到端测试覆盖配置、监控、历史、上传边界、文件安全、队列恢复、重试和访问限制；浏览器脚本覆盖手机与桌面视口。运行验证命令后可在本机查看结果。安装完整 Writer 后，可另运行 `python3 tests/real_office.py target/release/lanprint`，用真实 DOCX/二进制 DOC 验证转换；打印端仍使用模拟 `lp`，不会接触打印机。
+测试需 Python 3（标准库）及 `/usr/bin/pdfinfo`（真实 PDF 页数验证），不要求 CUPS 或 LibreOffice。单元和端到端测试覆盖配置、监控、历史、上传边界、文件安全、队列恢复、重试和访问限制；浏览器脚本覆盖手机与桌面视口。运行验证命令后可在本机查看结果。安装 LibreOffice 后，可另运行 `python3 tests/real_office.py target/release/lanprint`，用真实 DOCX/二进制 DOC 验证转换；打印端仍使用模拟 `lp`，不会接触打印机。
 
 代码：`src/model.rs` 配置与文件类型；`src/watcher.rs` 稳定检测与快照；`src/store.rs` SQLite；`src/printing.rs` 转换与 CUPS；`src/web.rs` API/访问限制；`src/lib.rs` 队列工作线程；`web/` 页面；`tests/` 集成验证。
 

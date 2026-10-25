@@ -36,7 +36,7 @@ pub async fn process(state: &AppState, job: &Job) -> Result<Submission> {
         source.file_stem().unwrap().to_string_lossy()
     ));
     let kind = file_kind(source).context("Unsupported spool extension")?;
-    let pdf = if kind == FileKind::Word {
+    let pdf = if matches!(kind, FileKind::Word | FileKind::Image) {
         let profile = workspace.path().join("profile");
         // The data directory is canonical and UTF-8. Escape URI-special bytes for LibreOffice.
         let uri = file_uri(&profile);
@@ -63,7 +63,7 @@ pub async fn process(state: &AppState, job: &Job) -> Result<Submission> {
         .await?;
         ensure!(
             converted.is_file() && converted.metadata()?.len() > 0,
-            "LibreOffice returned without creating a PDF; install LibreOffice Writer (libreoffice-writer), verify the document and import filters. Output: {conversion_output}"
+            "LibreOffice returned without creating a PDF; install LibreOffice and verify the document or image import filters. Output: {conversion_output}"
         );
         converted.as_path()
     } else {

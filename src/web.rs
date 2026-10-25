@@ -228,7 +228,7 @@ fn upload_name(name: &str) -> Result<&str, ApiError> {
     if file_kind(std::path::Path::new(leaf)).is_none() {
         return Err(ApiError(
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            "Only PDF, DOC and DOCX files are supported".into(),
+            "Only PDF, DOC, DOCX, PNG, JPG and JPEG files are supported".into(),
         ));
     }
     Ok(leaf)

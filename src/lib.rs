@@ -158,7 +158,10 @@ async fn tick(state: &Arc<AppState>, watcher: &mut watcher::Watcher) -> Result<(
 }
 
 async fn execute(state: &AppState, job: &model::Job) -> Result<()> {
-    let initial = if model::file_kind(Path::new(&job.spool_path)) == Some(model::FileKind::Word) {
+    let initial = if matches!(
+        model::file_kind(Path::new(&job.spool_path)),
+        Some(model::FileKind::Word | model::FileKind::Image)
+    ) {
         "converting"
     } else {
         "submitting"

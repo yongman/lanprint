@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | [English](README.en.md)
 
-Lanprint is a Linux folder-to-CUPS print service written in Rust. It watches one folder for stable PDF, DOC, and DOCX files, snapshots each accepted file, and submits it to a CUPS queue. Word documents are converted to PDF with LibreOffice. The local web console also supports explicit uploads, print history, retries, and a seven-day chart of jobs submitted to CUPS.
+Lanprint is a Linux folder-to-CUPS print service written in Rust. It watches one folder for stable PDF, DOC, DOCX, PNG, JPG, and JPEG files, snapshots each accepted file, and submits it to a CUPS queue. Word documents and images are converted to PDF with LibreOffice. The local web console also supports explicit uploads, print history, retries, and a seven-day chart of jobs submitted to CUPS.
 
 The interface supports Simplified Chinese and English. It follows the browser language on first use. Use the language selector in the page header to change it; the choice is saved in that browser.
 
@@ -12,13 +12,13 @@ The interface supports Simplified Chinese and English. It follows the browser la
 - A C compiler and `pkg-config`
 - CUPS client tools, including `lp`
 - Poppler `pdfinfo` for page counts
-- LibreOffice Writer and suitable fonts for DOC and DOCX conversion
+- LibreOffice Writer and suitable fonts for DOC and DOCX conversion; LibreOffice Draw and matching import filters for image conversion
 
 On Debian or Ubuntu:
 
 ```bash
 sudo apt update
-sudo apt install build-essential pkg-config cups-client poppler-utils libreoffice-writer fonts-noto-cjk
+sudo apt install build-essential pkg-config cups-client poppler-utils libreoffice-writer libreoffice-draw fonts-noto-cjk
 ```
 
 ## Build and first run
@@ -65,18 +65,18 @@ Lanprint does not prompt for CUPS passwords or store them in the web interface. 
 
 ## Folder monitoring and job history
 
-- Lanprint polls only the top level of the configured folder. It does not recurse or follow symbolic links. It accepts case-insensitive `.pdf`, `.docx`, and `.doc` extensions.
+- Lanprint polls only the top level of the configured folder. It does not recurse or follow symbolic links. It accepts case-insensitive `.pdf`, `.docx`, `.doc`, `.png`, `.jpg`, and `.jpeg` extensions.
 - A file must keep the same inode, size, and timestamps for the configured quiet period before Lanprint copies it to a private spool. The quiet period cannot prove that a writer has closed the file. For reliable handoff, write a temporary file, close it, then atomically rename it to its final name on the same filesystem.
 - Lanprint stores a SHA-256 fingerprint for the full source path and content. Repeated events and restarts do not print the same path and content again. Changed content at the same path is a new version. Explicit uploads are separate print requests and can print the same content more than once.
-- Jobs are processed serially. Word documents move through conversion and CUPS submission. Failed jobs do not retry automatically. The retry action uses the original snapshot and original printer settings.
+- Jobs are processed serially. Word documents and images move through PDF conversion and CUPS submission. Failed jobs do not retry automatically. The retry action uses the original snapshot and original printer settings.
 - A `Submitted to CUPS` status means that `lp` returned success. It does not confirm that paper came out. Check CUPS and the printer for the final result.
 - The history shows status, attempts, errors, and PDF page count when available. The seven-day chart counts jobs accepted by CUPS, grouped by the service's local calendar date. Page counts are PDF document pages, not physical sheets. Unknown counts remain marked as unknown and are not treated as zero.
 
 ## Uploads
 
-The home page accepts one PDF, DOC, or DOCX file at a time. The limit is 50 MiB. Uploads enter the queue even while folder monitoring is paused. Invalid, empty, unsupported, or oversized uploads are rejected. The service creates storage names itself and uses the supplied file name only for display and the CUPS job title.
+The home page accepts one PDF, DOC, DOCX, PNG, JPG, or JPEG file at a time. The limit is 50 MiB. Uploads enter the queue even while folder monitoring is paused. Invalid, empty, unsupported, or oversized uploads are rejected. The service creates storage names itself and uses the supplied file name only for display and the CUPS job title.
 
-Word conversion and CUPS submission run as separate commands with timeouts. Each conversion uses a separate LibreOffice user profile. The service does not claim exactly-once printing: if CUPS accepts a job but the local process fails before saving the result, a retry may print it again. Check the CUPS queue before retrying an interrupted or timed-out job.
+Word and image conversion and CUPS submission run as separate commands with timeouts. Each conversion uses a separate LibreOffice user profile and produces a PDF for page counting and printing. The service does not claim exactly-once printing: if CUPS accepts a job but the local process fails before saving the result, a retry may print it again. Check the CUPS queue before retrying an interrupted or timed-out job.
 
 ## Network security
 

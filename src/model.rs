@@ -71,12 +71,14 @@ fn valid_queue(name: &str) -> bool {
 pub enum FileKind {
     Pdf,
     Word,
+    Image,
 }
 
 pub fn file_kind(path: &Path) -> Option<FileKind> {
     match path.extension()?.to_str()?.to_ascii_lowercase().as_str() {
         "pdf" => Some(FileKind::Pdf),
         "doc" | "docx" => Some(FileKind::Word),
+        "png" | "jpg" | "jpeg" => Some(FileKind::Image),
         _ => None,
     }
 }
