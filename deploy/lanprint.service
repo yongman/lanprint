@@ -1,0 +1,21 @@
+[Unit]
+Description=Lanprint local directory print console
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# No authentication or TLS. The loopback default keeps the service local.
+# For trusted LAN access, replace this with an explicit RFC1918 address and restrict clients at the firewall.
+ExecStart=%h/.local/bin/lanprint --data-dir %h/.local/share/lanprint --bind 127.0.0.1:8787
+Restart=on-failure
+RestartSec=5
+# Two serial commands can each use a maximum timeout of 600 seconds.
+TimeoutStopSec=1250
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+Environment=RUST_LOG=lanprint=info
+
+[Install]
+WantedBy=default.target

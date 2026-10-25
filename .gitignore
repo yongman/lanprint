@@ -1,0 +1,7 @@
+/target/
+/data/
+*.sqlite3*
+/VERIFICATION.md
+__pycache__/
+*.py[cod]
+.DS_Store

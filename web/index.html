@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lanprint</title><link rel="stylesheet" href="/style.css"><script defer src="/i18n.js"></script><script defer src="/app.js"></script></head>
+<body data-title-key="page.homeTitle"><main>
+<header><div class="header-row"><div><p class="eyebrow">LINUX · CUPS</p><h1 data-i18n="home.title">Lanprint 打印</h1></div><div class="header-tools"><label class="language-control" for="language"><span data-i18n="language.label">界面语言</span><select id="language" data-i18n-aria-label="language.label" aria-label="界面语言"><option value="zh">简体中文</option><option value="en">English</option></select></label><nav data-i18n-aria-label="nav.aria" aria-label="主导航"><a href="/" aria-current="page" data-i18n="nav.home">首页</a><a href="/settings" data-i18n="nav.settings">设置</a></nav></div></div></header>
+<section aria-labelledby="upload-title"><h2 id="upload-title" data-i18n="upload.title">上传打印</h2><form id="upload">
+<label for="upload-file"><span data-i18n="upload.file">选择 PDF、DOC 或 DOCX</span><input id="upload-file" name="file" type="file" accept=".pdf,.doc,.docx" required></label>
+<button id="upload-submit" type="submit" data-i18n="upload.submit">上传并打印</button>
+<p id="upload-help" class="hint" data-i18n="upload.help">单个文件最多 50 MiB。上传后自动排队打印，目录监控暂停时也会执行。</p>
+</form><p id="upload-result" role="status" aria-live="polite"></p></section>
+<p id="notice" role="alert"></p>
+<section aria-labelledby="history-title"><div class="section-title"><h2 id="history-title" data-i18n="history.title">打印历史</h2><button id="refresh" class="secondary" data-i18n="common.refresh">刷新</button></div><p class="hint" data-i18n="history.help">“已提交”表示 CUPS 已接收，实际打印结果请查看打印机或 CUPS 队列。重试使用原文件快照及入队时的打印配置。</p><figure aria-labelledby="weekly-title" aria-describedby="weekly-help weekly-summary">
+<h3 id="weekly-title" data-i18n="chart.title">最近 7 天 · 已提交至 CUPS</h3>
+<p id="weekly-help" class="hint" data-i18n="chart.help">服务本地自然日：今天及之前 6 天。页数为 PDF 文档页数，不代表物理出纸张数。</p>
+<p class="chart-legend"><span class="legend-files" data-i18n="chart.files">文件数</span><span class="legend-pages" data-i18n="chart.pages">页数</span></p>
+<p id="weekly-summary" role="status" data-i18n="chart.loading">正在读取统计…</p>
+<div id="weekly-chart" class="weekly-chart" role="img" data-i18n-aria-label="chart.aria" aria-label="最近 7 天已提交至 CUPS 的文件数与页数柱状图"></div>
+<details><summary data-i18n="chart.details">查看每日统计文本</summary><ul id="weekly-text" class="weekly-text"></ul></details>
+</figure><div class="table-wrap"><table><thead><tr><th data-i18n="history.file">文件</th><th data-i18n="history.created">创建时间</th><th data-i18n="history.status">状态 / 次数</th><th data-i18n="history.pdfPages">PDF 页数</th><th data-i18n="history.result">结果</th><th data-i18n="history.actions">操作</th></tr></thead><tbody id="jobs"></tbody></table></div><div class="actions"><button id="previous" class="secondary" data-i18n="pagination.previous">上一页</button><span id="page"></span><button id="next" class="secondary" data-i18n="pagination.next">下一页</button></div></section>
+</main></body></html>

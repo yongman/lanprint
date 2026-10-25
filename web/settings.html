@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lanprint</title><link rel="stylesheet" href="/style.css"><script defer src="/i18n.js"></script><script defer src="/settings.js"></script></head>
+<body data-title-key="page.settingsTitle"><main>
+<header><div class="header-row"><div><p class="eyebrow">LINUX · CUPS</p><h1 data-i18n="settings.title">Lanprint 设置</h1></div><div class="header-tools"><label class="language-control" for="language"><span data-i18n="language.label">界面语言</span><select id="language" data-i18n-aria-label="language.label" aria-label="界面语言"><option value="zh">简体中文</option><option value="en">English</option></select></label><nav data-i18n-aria-label="nav.aria" aria-label="主导航"><a href="/" data-i18n="nav.home">首页</a><a href="/settings" aria-current="page" data-i18n="nav.settings">设置</a></nav></div></div></header>
+<section aria-labelledby="status-title"><h2 id="status-title" data-i18n="settings.statusTitle">运行状态</h2><p id="status" role="status" data-i18n="common.connecting">正在连接…</p><p id="scan"></p><p id="counts"></p><p id="restart" role="status"></p><div class="actions"><button id="start" data-i18n="settings.start">启动监控</button><button id="pause" class="secondary" data-i18n="settings.pause">暂停监控</button></div><p class="hint" data-i18n="settings.statusHelp">暂停后正在执行的任务会继续，目录排队任务等待再次启动；上传任务自动处理。服务重启后目录监控默认暂停。已有任务及人工重试始终使用入队时的原配置，重启也不会改写目标。</p></section>
+<p id="notice" role="alert"></p>
+<section aria-labelledby="config-title"><h2 id="config-title" data-i18n="settings.configTitle">目录与打印配置</h2><form id="config">
+<label><span data-i18n="settings.watchDir">监控目录（绝对路径）</span><input name="watch_dir" required placeholder="/home/user/print-inbox" data-i18n-placeholder="settings.watchDirPlaceholder"></label>
+<label><span data-i18n="settings.printer">CUPS 打印队列</span><input name="printer" required placeholder="Office" data-i18n-placeholder="settings.printerPlaceholder"></label>
+<label><span data-i18n="settings.cupsServer">CUPS 服务端（留空使用系统默认）</span><input name="cups_server" placeholder="print-server.local:631" data-i18n-placeholder="settings.cupsServerPlaceholder"></label>
+<label><span data-i18n="settings.lpPath">lp 可执行文件</span><input name="lp_path" required value="/usr/bin/lp"></label>
+<label><span data-i18n="settings.libreOfficePath">LibreOffice 可执行文件</span><input name="libreoffice_path" required value="/usr/bin/libreoffice"></label>
+<label><span data-i18n="settings.stableSeconds">稳定等待（秒，2–300）</span><input name="stable_seconds" type="number" min="2" max="300" value="5" required></label>
+<label><span data-i18n="settings.commandTimeout">单个命令超时（秒，1–600）</span><input name="command_timeout_seconds" type="number" min="1" max="600" value="120" required></label>
+<button type="submit" data-i18n="settings.save">保存配置</button><p class="hint" data-i18n="settings.configHelp">此表单显示已保存配置；更改后需由管理员重启服务才生效。首次保存同样需要重启。修改前请暂停，并等待扫描或打印结束；保存不会取消或改写排队任务。启动监控会处理活动目录中已有的文件；仅扫描当前层的 PDF、DOCX、DOC。</p>
+</form></section>
+</main></body></html>
